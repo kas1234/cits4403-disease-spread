@@ -1,53 +1,39 @@
-# Network Structure vs. Vaccination Strategy — SIR Epidemic Model
+# Disease Spread Model — Network Structure vs Vaccination Strategy
 
-**Research question:** How does contact-network structure interact with
-vaccination strategy to determine epidemic outcomes, under a fixed
-vaccination budget?
+For this project we're modelling how a disease spreads through a
+population, but instead of assuming anyone can catch it from anyone else,
+people are connected through a network — like a real contact network would
+be. The idea is to see whether the shape of that network changes which
+vaccination strategy actually works best.
 
-## Project structure
+**Research question:** if we can only vaccinate a limited number of people,
+does it matter whether we pick randomly, target the most-connected people,
+or target the people who connect different groups together? And does
+the answer change depending on what the network looks like — random
+connections, tight-knit communities, or a few super-connected hubs?
 
-```
-disease-spread-project/
-├── src/
-│   ├── networks.py       # network topology generators
-│   ├── vaccination.py    # vaccination strategy implementations
-│   ├── sir_model.py       # core SIR simulation over a graph
-│   ├── experiment.py      # parameter sweep + multiple replications
-│   └── visualize.py       # epidemic curves + phase diagrams
-├── demo.py                 # quick single-run demo (start here)
-├── run_experiment.py       # full parameter sweep (Checkpoint 2 target)
-├── results/                # generated figures / csv output land here
-└── requirements.txt
-```
+## What's in here
 
-## Getting started
+- `demo.py` — builds one network and runs a single outbreak
+- `src/networks.py` — builds the different network types (random, small-world, scale-free)
+- `src/vaccination.py` — the different vaccination strategies
+- `src/sir_model.py` — the actual spread simulation (Susceptible → Infected → Recovered)
+- `src/visualize.py` — makes the plots
 
-```bash
-pip install -r requirements.txt
-python demo.py              # single run: builds one network, runs SIR, plots the curve
-python run_experiment.py    # full sweep across topologies x strategies x transmission prob
-```
+## Assumptions we're making
 
-## Model assumptions (edit these as your group refines them)
+- Each timestep, an infected person has a chance (`beta`) of infecting each
+  susceptible neighbour, and a chance (`gamma`) of recovering.
+- Vaccinated people are treated as already immune from the start — we're
+  not modelling partial immunity or delayed rollout yet.
+- The outbreak starts with one random person getting infected.
+- The network stays fixed during a run — no new connections form mid-outbreak.
 
-- Discrete-time SIR: each infected node infects each susceptible neighbour
-  independently with probability `beta` per timestep, and recovers with
-  probability `gamma` per timestep (so infectious duration ~ Geometric(gamma)).
-- A vaccinated node is treated as permanently Recovered (immune) from t=0 —
-  i.e. vaccination removes it from the susceptible pool before the outbreak
-  starts. This is a simplifying assumption worth discussing/relaxing later
-  (e.g. partial efficacy, delayed rollout).
-- The outbreak is seeded by infecting one randomly chosen non-vaccinated node.
-- Network is static for the duration of one simulation run (no rewiring).
+## What's next
 
-## Next steps for your group
-
-1. Run `demo.py`, confirm the epidemic curve looks sensible (rises, peaks, decays).
-2. Sanity-check against theory: sweep `beta` on an Erdos-Renyi graph and confirm
-   there's a threshold below which outbreaks fizzle out and above which they
-   take off (the epidemic threshold).
-3. Run `run_experiment.py` and look at `results/phase_diagram.png` — this is
-   your core Checkpoint 2 result.
-4. Decide on your "twist" extension (behavioural feedback, superspreader
-   clustering, spatial mobility — see conversation notes) once the baseline
-   is solid.
+- Actually run this across a bunch of different transmission rates and see
+  where it takes off vs. dies out.
+- Compare all three network types against all three vaccination strategies.
+- Validate the model against a real historical outbreak — planning to use
+  the 1978 English boarding school flu outbreak (a well-documented,
+  closed-population case with known outcomes) as a benchmark.
