@@ -35,18 +35,26 @@ connections, tight-knit communities, or a few super-connected hubs?
 ## Progress so far (Checkpoint 2)
 
 - Ran the full sweep across all three network types, all four vaccination
-  strategies, and seven transmission rates (15 stochastic replications per
+  strategies, and seven transmission rates (30 stochastic replications per
   combination) — see `results/sweep_results.csv` and the phase-diagram plots.
 - Headline finding: which vaccination strategy works best depends heavily
-  on network structure. On scale-free networks, targeting the highest-degree
-  people crushes the outbreak (final size drops from ~0.87 with no
-  vaccination to ~0.24 at beta=0.10) because a small number of hubs drive
-  most of the spread. On small-world networks, targeting people with high
-  betweenness (the ones bridging different clusters) works best instead
-  (~0.47 vs ~0.84 unvaccinated). On plain random networks, where no node is
-  structurally special, degree/betweenness targeting doesn't have a clear
-  edge over just vaccinating randomly — there's no real hub or bridge
-  structure to exploit.
+  on network structure. Results below are mean final size (fraction of the
+  population infected) at beta = 0.10 with 10% of people vaccinated, over 30
+  runs each:
+
+  | Network | None | Random | Degree | Betweenness |
+  |---|---|---|---|---|
+  | Scale-free | 0.84 | 0.68 | **0.22** | 0.25 |
+  | Small-world | 0.84 | 0.59 | 0.58 | **0.44** |
+  | Random | 0.83 | 0.67 | 0.66 | 0.77 |
+
+  On scale-free networks, targeting the most-connected people (degree) is by
+  far the best, because a few hubs drive most of the spread. On small-world
+  networks, targeting people with high betweenness (the ones bridging
+  different clusters) works best. On plain random networks no node is
+  structurally special, so targeting does not beat vaccinating at random
+  (degree is about equal to random, betweenness is worse); at beta = 0.20
+  random vaccination is the best option there.
 - Calibrated the model against the 1978 English boarding-school flu outbreak
   (N=763, reported final size 0.671, peak of 298 around day 6). A complete-graph
   (homogeneous mixing) assumption spread far too fast to match any target, so we
@@ -57,6 +65,11 @@ connections, tight-knit communities, or a few super-connected hubs?
 
 ## Issues encountered
 
+- We found and fixed a counting bug: `final_size` treated vaccinated people
+  (who start in the recovered state) as infected, which made every vaccination
+  result 0.10 too high. After the fix and a re-run with 30 repeats the ordering
+  of strategies is unchanged but the benefit of vaccination is larger than first
+  reported (see Pull Request #4).
 - The calibration fit is still rough — the model tends to overshoot the
   real outbreak's final size and peak even at the best-scoring parameters.
   Worth investigating whether that's a network-structure issue (a random
