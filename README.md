@@ -69,3 +69,11 @@ connections, tight-knit communities, or a few super-connected hubs?
 - Tighten the calibration (try small-world or other structured networks for
   the boarding-school contact pattern instead of a purely random one).
 - Write up the final report/checkpoint deliverable from these results.
+
+## How to run
+
+1. Install Python 3.10 or newer.
+2. Install the libraries: `pip install -r requirements.txt`
+3. Run one example outbreak: `python demo.py`
+4. Run the full experiment (several minutes, saves CSVs and plots to `results/`): `python run_experiment.py`
+5. Run the calibration against the 1978 boarding school outbreak: `python calibrate.py`
