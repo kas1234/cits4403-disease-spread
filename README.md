@@ -22,9 +22,48 @@ connections, tight-knit communities, or a few super-connected hubs?
 - `run_experiment.py` — entry point for the sweep; saves `results/sweep_results.csv` and phase-diagram plots
 - `calibrate.py` — calibrates the model against a real outbreak; saves `results/calibration_search.csv` and a comparison plot
 - `src/visualize.py` — makes the plots
-- `analysis.ipynb` — notebook that turns `results/sweep_results.csv` into the summary tables and figures used in the report
+- `notebooks/analysis.ipynb` — notebook that explains the model with its equations and turns `results/sweep_results.csv` into the summary tables and figures used in the report
+- `utils/stats.py` — helper functions for means, confidence intervals and the "major outbreak" definition
+- `data/` — the real outbreak numbers used for calibration (`boarding_school_1978.csv`) and where they come from
+- `tests/` — automated tests that check the model rules, the vaccination strategies and the network builders
 - `comparison_model/` — a second, independently written SIRV model (100 people, 20% vaccinated) used as a cross-check of the main model
 - `report/` — the sections of the written report
+
+## Repository structure
+
+```
+cits4403-disease-spread/
++-- src/              model code: networks, vaccination strategies, SIR simulation, experiment runner
++-- utils/            helper functions (statistics)
++-- data/             real outbreak numbers used for calibration
++-- notebooks/        analysis notebook (model equations, tables, figures)
++-- tests/            automated tests (python -m pytest)
++-- results/          saved simulation output and figures
++-- report/           sections of the written report
++-- comparison_model/ second, independently written model used as a cross-check
++-- requirements.txt  dependencies
++-- README.md
+```
+
+## Our contribution
+
+The SIR model, the three network types and targeted immunisation are well known; we do not claim
+them as new. All of the code in this repository was written by us (no code was copied from other
+projects), and the project's own contribution is the investigation built on top of them:
+
+- a controlled comparison of four vaccination strategies (none, random, degree, betweenness) on
+  three network types that are matched in size and average number of contacts, using the same random
+  seeds for every strategy so that strategies are compared on identical networks;
+- an analysis that separates how often an outbreak takes off from how large it is when it does,
+  which shows that targeted vaccination on scale-free networks both prevents outbreaks and shrinks
+  them, while on random networks it only shrinks them;
+- a calibration against a real outbreak (1978 boarding-school influenza) that is honest about where
+  the model fails (final size), including the correction of a misleadingly good fit caused by
+  averaging runs that died out with runs that took off;
+- the discovery and fix of a counting bug (vaccinated people counted as infected), now guarded by
+  tests; and
+- a second, independently written implementation (`comparison_model/`) used to cross-check the
+  conclusions, with the differences between the two models discussed in the report.
 
 ## Assumptions we're making
 
@@ -70,7 +109,7 @@ connections, tight-knit communities, or a few super-connected hubs?
   its timing (day 8 against day 6) are close to the real outbreak, but the final
   size is far too high (0.97 against 0.67). A small-world network did not fit
   better. See `results/calibration_search.csv` and `calibration_comparison.png`.
-- Added `analysis.ipynb`, which reproduces every table and figure in the results
+- Added `notebooks/analysis.ipynb`, which reproduces every table and figure in the results
   section of the report, including confidence intervals and how often outbreaks
   take off.
 - Added a second, independently written model in `comparison_model/` with its own
@@ -107,5 +146,6 @@ connections, tight-knit communities, or a few super-connected hubs?
 3. Run one example outbreak: `python demo.py`
 4. Run the full experiment (several minutes, saves CSVs and plots to `results/`): `python run_experiment.py`
 5. Run the calibration against the 1978 boarding school outbreak: `python calibrate.py`
-6. Open the analysis notebook (needs `pip install jupyter`): `jupyter notebook analysis.ipynb`
-7. The comparison model has its own instructions in `comparison_model/`.
+6. Run the tests: `python -m pytest`
+7. Open the analysis notebook: `jupyter notebook notebooks/analysis.ipynb` (run it from the project root)
+8. The comparison model has its own instructions in `comparison_model/`.
