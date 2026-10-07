@@ -20,6 +20,15 @@ immediately. So instead we search over a moderate average-degree contact
 network (representing realistic daily contacts: classmates, dorm-mates,
 meals) together with beta and gamma, and look for the combination whose
 simulated outbreak best matches the three reported summary numbers.
+
+Second attempt: on a network, a run either dies out almost immediately
+(the first person recovers before infecting anyone) or becomes a major
+outbreak. Averaging the two kinds of run together gave a misleadingly good
+"fit" (the average of 0% and 99% can look like 67%). The real school outbreak
+did take off, so we now score only the runs that became major outbreaks
+(final size above 10%), report how often that happened, and also try a
+small-world contact network as well as a random one. The search uses the
+corrected final_size (vaccinated people are no longer counted as infected).
 """
 
 import itertools
@@ -36,34 +45,45 @@ TARGET_PEAK = 298
 TARGET_TIME_TO_PEAK = 6
 
 N_REPS = 10
-AVG_DEGREES = [5, 6, 7, 8, 10, 12]
-BETAS = np.arange(0.06, 0.15, 0.01)
-GAMMAS = np.arange(0.10, 0.35, 0.05)
+TOPOLOGIES = ["random", "small_world"]
+MAJOR_OUTBREAK = 0.10  # runs with a smaller final size count as "died out"
+AVG_DEGREES = [6, 8, 10, 12]
+BETAS = np.round(np.arange(0.04, 0.22, 0.02), 2)
+GAMMAS = [0.20, 0.30, 0.40, 0.50]
 
 
-def score(avg_degree, beta, gamma):
+def score(topology, avg_degree, beta, gamma):
+    """Mean outcome over the runs that became major outbreaks."""
     finals, peaks, ttps = [], [], []
     for rep in range(N_REPS):
-        graph = build_network("random", N, avg_degree, seed=rep)
+        graph = build_network(topology, N, avg_degree, seed=rep)
         result = run_sir(graph, beta=beta, gamma=gamma, vaccinated=None, seed=rep)
-        finals.append(result["final_size"])
-        peaks.append(result["peak_infected"])
-        ttps.append(result["time_to_peak"])
-    return np.mean(finals), np.mean(peaks), np.mean(ttps)
+        if result["final_size"] > MAJOR_OUTBREAK:
+            finals.append(result["final_size"])
+            peaks.append(result["peak_infected"])
+            ttps.append(result["time_to_peak"])
+    takeoff = len(finals) / N_REPS
+    if len(finals) < N_REPS / 2:
+        return None  # outbreak usually dies out, so this setting cannot be calibrated
+    return np.mean(finals), np.mean(peaks), np.mean(ttps), takeoff
 
 
 if __name__ == "__main__":
     rows = []
-    for avg_degree, beta, gamma in itertools.product(AVG_DEGREES, BETAS, GAMMAS):
-        final, peak, ttp = score(avg_degree, beta, gamma)
+    for topology, avg_degree, beta, gamma in itertools.product(TOPOLOGIES, AVG_DEGREES, BETAS, GAMMAS):
+        scored = score(topology, avg_degree, beta, gamma)
+        if scored is None:
+            continue
+        final, peak, ttp, takeoff = scored
         err = (
             ((final - TARGET_FINAL_SIZE) / TARGET_FINAL_SIZE) ** 2
             + ((peak - TARGET_PEAK) / TARGET_PEAK) ** 2
             + ((ttp - TARGET_TIME_TO_PEAK) / TARGET_TIME_TO_PEAK) ** 2
         )
-        rows.append({"avg_degree": avg_degree, "beta": beta, "gamma": gamma,
+        rows.append({"topology": topology, "avg_degree": avg_degree, "beta": beta, "gamma": gamma,
                       "final_size": final, "peak_infected": peak,
-                      "time_to_peak": ttp, "error": err})
+                      "time_to_peak": ttp, "takeoff_fraction": takeoff,
+                      "error": err})
 
     df = pd.DataFrame(rows)
     df.to_csv("results/calibration_search.csv", index=False)
@@ -71,13 +91,18 @@ if __name__ == "__main__":
     best = df.loc[df["error"].idxmin()]
     print("Best fit:")
     print(best)
+    print(f"Mean over major-outbreak runs only; {best['takeoff_fraction']:.0%} of runs took off.")
 
-    graph = build_network("random", N, int(best["avg_degree"]), seed=1)
-    result = run_sir(graph, beta=best["beta"], gamma=best["gamma"], vaccinated=None, seed=1)
+    # Plot the first run (seed 0, 1, 2, ...) that became a major outbreak.
+    for seed in range(N_REPS):
+        graph = build_network(best["topology"], N, int(best["avg_degree"]), seed=seed)
+        result = run_sir(graph, beta=best["beta"], gamma=best["gamma"], vaccinated=None, seed=seed)
+        if result["final_size"] > MAJOR_OUTBREAK:
+            break
 
     fig, ax = plt.subplots(figsize=(7, 4.5))
     ax.plot(result["I_t"],
-            label=f"simulated (avg_degree={int(best['avg_degree'])}, beta={best['beta']:.2f}, gamma={best['gamma']:.2f})",
+            label=f"simulated ({best['topology']}, avg_degree={int(best['avg_degree'])}, beta={best['beta']:.2f}, gamma={best['gamma']:.2f})",
             linewidth=2)
     ax.axhline(TARGET_PEAK, color="grey", linestyle="--", label=f"reported peak ({TARGET_PEAK})")
     ax.axvline(TARGET_TIME_TO_PEAK, color="grey", linestyle=":", label=f"reported time to peak (day {TARGET_TIME_TO_PEAK})")
