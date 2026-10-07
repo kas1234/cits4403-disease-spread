@@ -105,7 +105,9 @@ def run_sir(graph: nx.Graph, beta: float, gamma: float,
         "S_t": S_t,
         "I_t": I_t,
         "R_t": R_t,
-        "final_size": R_t[-1] / len(nodes),
+        # Vaccinated people start in the R state, so remove them here:
+        # final_size is the fraction of the population that got infected.
+        "final_size": (R_t[-1] - len(vaccinated)) / len(nodes),
         "peak_infected": peak_infected,
         "time_to_peak": int(np.argmax(I_t)),
         "duration": len(I_t) - 1

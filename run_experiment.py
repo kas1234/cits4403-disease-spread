@@ -20,7 +20,7 @@ if __name__ == "__main__":
         avg_degree=6,
         gamma=0.1,
         budget=0.1,
-        n_replications=15,
+        n_replications=30,
         base_seed=0,
     )
 
