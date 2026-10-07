@@ -18,10 +18,13 @@ connections, tight-knit communities, or a few super-connected hubs?
 - `src/networks.py` — builds the different network types (random, small-world, scale-free)
 - `src/vaccination.py` — the different vaccination strategies
 - `src/sir_model.py` — the actual spread simulation (Susceptible → Infected → Recovered)
-- `src/experiment.py` — runs the full sweep (topology x strategy x transmission rate, 15 replications each)
+- `src/experiment.py` — runs the full sweep (topology x strategy x transmission rate, 30 replications each)
 - `run_experiment.py` — entry point for the sweep; saves `results/sweep_results.csv` and phase-diagram plots
 - `calibrate.py` — calibrates the model against a real outbreak; saves `results/calibration_search.csv` and a comparison plot
 - `src/visualize.py` — makes the plots
+- `analysis.ipynb` — notebook that turns `results/sweep_results.csv` into the summary tables and figures used in the report
+- `comparison_model/` — a second, independently written SIRV model (100 people, 20% vaccinated) used as a cross-check of the main model
+- `report/` — the sections of the written report
 
 ## Assumptions we're making
 
@@ -58,10 +61,21 @@ connections, tight-knit communities, or a few super-connected hubs?
 - Calibrated the model against the 1978 English boarding-school flu outbreak
   (N=763, reported final size 0.671, peak of 298 around day 6). A complete-graph
   (homogeneous mixing) assumption spread far too fast to match any target, so we
-  searched over average-degree contact networks instead. Best fit so far:
-  avg_degree=12, beta=0.14, gamma=0.30, giving simulated final size 0.89 vs.
-  target 0.67 and peak 335 vs. target 298 — in the right ballpark but not a
-  tight match yet, see `results/calibration_search.csv` / `calibration_comparison.png`.
+  searched over contact networks (random and small-world) with different numbers
+  of contacts, beta and gamma. On a network an outbreak often dies out at once,
+  and averaging those runs with the major outbreaks gave a misleadingly good fit,
+  so the calibration now scores only the runs where the outbreak took off
+  (final size above 10%). The best fit is a random network with about 12
+  contacts per person, beta 0.18 and gamma 0.5: the average peak (about 299) and
+  its timing (day 8 against day 6) are close to the real outbreak, but the final
+  size is far too high (0.97 against 0.67). A small-world network did not fit
+  better. See `results/calibration_search.csv` and `calibration_comparison.png`.
+- Added `analysis.ipynb`, which reproduces every table and figure in the results
+  section of the report, including confidence intervals and how often outbreaks
+  take off.
+- Added a second, independently written model in `comparison_model/` with its own
+  beta sweep and graphs. It agrees that targeting the most-connected people beats
+  random vaccination on scale-free networks.
 
 ## Issues encountered
 
@@ -70,18 +84,21 @@ connections, tight-knit communities, or a few super-connected hubs?
   result 0.10 too high. After the fix and a re-run with 30 repeats the ordering
   of strategies is unchanged but the benefit of vaccination is larger than first
   reported (see Pull Request #4).
-- The calibration fit is still rough — the model tends to overshoot the
-  real outbreak's final size and peak even at the best-scoring parameters.
-  Worth investigating whether that's a network-structure issue (a random
-  graph may not represent a boarding school's actual contact pattern well)
-  or whether the error metric is weighting the three targets in a way that
-  doesn't produce a great visual fit.
+- The calibration still does not reproduce the final size of the real outbreak.
+  Once an outbreak takes off on a network with enough contacts to spread this
+  fast, it reaches almost everyone, while only two thirds of the boys were ill.
+  Possible reasons (not yet tested) are that some boys were already immune and
+  that a boarding school has dormitory and class structure that our simple
+  networks do not have.
+- Results are noisy: many runs die out immediately, so only differences larger
+  than about 0.1 in final size should be trusted with 30 repetitions.
 
 ## What's next
 
-- Tighten the calibration (try small-world or other structured networks for
-  the boarding-school contact pattern instead of a purely random one).
-- Write up the final report/checkpoint deliverable from these results.
+- Finish the written report (sections are in `report/`).
+- Possible extensions: partial vaccine effectiveness, several vaccination
+  coverages, networks that change during the outbreak, and calibration that
+  allows part of the population to start immune.
 
 ## How to run
 
@@ -90,3 +107,5 @@ connections, tight-knit communities, or a few super-connected hubs?
 3. Run one example outbreak: `python demo.py`
 4. Run the full experiment (several minutes, saves CSVs and plots to `results/`): `python run_experiment.py`
 5. Run the calibration against the 1978 boarding school outbreak: `python calibrate.py`
+6. Open the analysis notebook (needs `pip install jupyter`): `jupyter notebook analysis.ipynb`
+7. The comparison model has its own instructions in `comparison_model/`.
