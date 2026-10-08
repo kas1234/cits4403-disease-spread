@@ -23,26 +23,26 @@ def create_summary(df):
     summary = (
         df.groupby(
             [
-                "topology",
+                "network",
                 "strategy",
                 "beta"
             ]
         )
         .agg(
-            mean_final_size=(
-                "final_size",
+            mean_epidemic_size=(
+                "epidemic_size",
                 "mean"
             ),
-            std_final_size=(
-                "final_size",
+            std_epidemic_size=(
+                "epidemic_size",
                 "std"
             ),
-            mean_peak_infected=(
-                "peak_infected",
+            mean_peak_infections=(
+                "peak_infections",
                 "mean"
             ),
-            std_peak_infected=(
-                "peak_infected",
+            std_peak_infections=(
+                "peak_infections",
                 "std"
             ),
             mean_time_to_peak=(
@@ -66,12 +66,12 @@ def compare_vaccination_strategies(df):
     comparison = (
         df.groupby("strategy")
         .agg(
-            mean_final_size=(
-                "final_size",
+            mean_epidemic_size=(
+                "epidemic_size",
                 "mean"
             ),
-            mean_peak_infected=(
-                "peak_infected",
+            mean_peak_infections=(
+                "peak_infections",
                 "mean"
             ),
             mean_time_to_peak=(
@@ -93,14 +93,14 @@ def compare_networks(df):
     """Compare epidemic behaviour across network structures."""
 
     comparison = (
-        df.groupby("topology")
+        df.groupby("network")
         .agg(
-            mean_final_size=(
-                "final_size",
+            mean_epidemic_size=(
+                "epidemic_size",
                 "mean"
             ),
-            mean_peak_infected=(
-                "peak_infected",
+            mean_peak_infections=(
+                "peak_infections",
                 "mean"
             ),
             mean_time_to_peak=(
