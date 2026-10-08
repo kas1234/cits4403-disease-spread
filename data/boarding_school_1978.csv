@@ -1,0 +1,7 @@
+quantity,value,description
+population,763,Number of boys at the school
+confined_to_bed,512,Boys confined to bed at some point during the outbreak
+final_size,0.671,Fraction of the school confined to bed (512 / 763)
+peak_in_bed,298,Largest number of boys in bed at the same time
+day_of_peak,6,Day on which the peak occurred
+duration_days,14,Approximate length of the outbreak in days

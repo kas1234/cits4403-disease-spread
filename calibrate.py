@@ -32,6 +32,7 @@ corrected final_size (vaccinated people are no longer counted as infected).
 """
 
 import itertools
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -39,10 +40,13 @@ import matplotlib.pyplot as plt
 from src.networks import build_network
 from src.sir_model import run_sir
 
-N = 763
-TARGET_FINAL_SIZE = 512 / 763
-TARGET_PEAK = 298
-TARGET_TIME_TO_PEAK = 6
+# Summary numbers of the real outbreak (see data/README.md for the source)
+DATA_FILE = Path(__file__).parent / "data" / "boarding_school_1978.csv"
+_real = pd.read_csv(DATA_FILE).set_index("quantity")["value"]
+N = int(_real["population"])
+TARGET_FINAL_SIZE = _real["confined_to_bed"] / _real["population"]
+TARGET_PEAK = int(_real["peak_in_bed"])
+TARGET_TIME_TO_PEAK = int(_real["day_of_peak"])
 
 N_REPS = 10
 TOPOLOGIES = ["random", "small_world"]
