@@ -27,7 +27,7 @@ connections, tight-knit communities, or a few super-connected hubs?
 - `data/` — the real outbreak numbers used for calibration (`boarding_school_1978.csv`) and where they come from
 - `tests/` — automated tests that check the model rules, the vaccination strategies and the network builders
 - `comparison_model/` — a second, independently written SIRV model (100 people, 20% vaccinated) used as a cross-check of the main model
-- `report/` — the sections of the written report
+- `report/` — the final report (`CITS4403_Report.pdf` and the Word version); the `.md` files are earlier drafts of individual sections
 
 ## Repository structure
 
@@ -39,7 +39,7 @@ cits4403-disease-spread/
 +-- notebooks/        analysis notebook (model equations, tables, figures)
 +-- tests/            automated tests (python -m pytest)
 +-- results/          saved simulation output and figures
-+-- report/           sections of the written report
++-- report/           final report (PDF and Word) and early section drafts
 +-- comparison_model/ second, independently written model used as a cross-check
 +-- requirements.txt  dependencies
 +-- README.md
@@ -134,7 +134,7 @@ projects), and the project's own contribution is the investigation built on top 
 
 ## What's next
 
-- Finish the written report (sections are in `report/`).
+- The final report is in `report/` (`CITS4403_Report.pdf`).
 - Possible extensions: partial vaccine effectiveness, several vaccination
   coverages, networks that change during the outbreak, and calibration that
   allows part of the population to start immune.
